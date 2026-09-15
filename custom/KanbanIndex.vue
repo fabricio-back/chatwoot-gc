@@ -153,19 +153,25 @@ const fetchColumn = async labelTitle => {
   if (!col) return;
   col.loading = true;
   try {
-    let all = [];
-    let page = 1;
     const MAX_PAGES = 5; // ~125 conversas por coluna; aumentar se precisar de mais histórico
-    while (page <= MAX_PAGES) {
-      const response = await axios.get(
-        `/api/v1/accounts/${accountId.value}/conversations`,
-        { params: { labels: labelTitle, status: 'open', assignee_type: 'all', page } }
+    const getPage = page => axios.get(
+      `/api/v1/accounts/${accountId.value}/conversations`,
+      { params: { labels: labelTitle, status: 'open', assignee_type: 'all', page } }
+    );
+
+    const first = await getPage(1);
+    let all = first.data?.data?.payload || [];
+
+    // all_count já vem filtrado por label+status (ConversationFinder aplica o
+    // filtro antes de contar), então dá para buscar as páginas restantes em
+    // paralelo em vez de uma sequência de requisições que espera cada anterior.
+    const totalCount = first.data?.data?.meta?.all_count ?? all.length;
+    const totalPages = Math.min(Math.ceil(totalCount / 25), MAX_PAGES);
+    if (totalPages > 1) {
+      const rest = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, i) => getPage(i + 2))
       );
-      const payload = response.data?.data?.payload || [];
-      all = all.concat(payload);
-      // API retorna menos que 25 = última página
-      if (payload.length < 25) break;
-      page++;
+      rest.forEach(r => { all = all.concat(r.data?.data?.payload || []); });
     }
     col.conversations = all;
 
