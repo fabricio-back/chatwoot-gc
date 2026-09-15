@@ -38,6 +38,11 @@ const noteSaved = ref(false); // feedback visual do botão Salvar nota
 const loadedContactNote = ref(''); // rastreia nota carregada da API (evita duplicatas)
 const cardHistory = ref({ loading: false, timeline: [] });
 
+// Data em que a etiqueta atual (última) do card foi atribuída — id -> epoch segundos.
+// Atualizado com precisão no drag-and-drop; no primeiro encontro do card via fetch,
+// usa a data de primeiro avistamento como aproximação (não há essa data na API de listagem).
+const labelEnteredAt = ref({});
+
 // --- Persistence ---
 const storageKey = suffix => `kanban-${suffix}-${accountId.value}`;
 
@@ -49,6 +54,8 @@ const loadPersisted = () => {
     if (hidden) hiddenColumns.value = new Set(JSON.parse(hidden));
     const savedNotes = localStorage.getItem(storageKey('notes'));
     if (savedNotes) notes.value = JSON.parse(savedNotes);
+    const savedEnteredAt = localStorage.getItem(storageKey('labelEnteredAt'));
+    if (savedEnteredAt) labelEnteredAt.value = JSON.parse(savedEnteredAt);
   } catch { /* ignore */ }
 };
 
@@ -60,6 +67,9 @@ const saveHidden = () => {
 };
 const saveNotes = () => {
   try { localStorage.setItem(storageKey('notes'), JSON.stringify(notes.value)); } catch { /**/ }
+};
+const saveLabelEnteredAt = () => {
+  try { localStorage.setItem(storageKey('labelEnteredAt'), JSON.stringify(labelEnteredAt.value)); } catch { /**/ }
 };
 
 // --- Contact Notes API ---
@@ -158,6 +168,15 @@ const fetchColumn = async labelTitle => {
       page++;
     }
     col.conversations = all;
+
+    let touched = false;
+    all.forEach(c => {
+      if (labelEnteredAt.value[c.id] === undefined) {
+        labelEnteredAt.value[c.id] = c.timestamp || c.created_at || Math.floor(Date.now() / 1000);
+        touched = true;
+      }
+    });
+    if (touched) saveLabelEnteredAt();
   } catch {
     col.conversations = [];
   } finally {
@@ -191,6 +210,10 @@ const onDrop = async (event, targetLabel) => {
   const toCol = columns.value[targetLabel];
   if (fromCol) fromCol.conversations = fromCol.conversations.filter(c => c.id !== convId);
   if (toCol) toCol.conversations.unshift({ ...conv, labels: newLabels });
+
+  // Movido manualmente agora: data exata, ao contrário da aproximação do fetch inicial
+  labelEnteredAt.value[convId] = Math.floor(Date.now() / 1000);
+  saveLabelEnteredAt();
 
   try {
     await axios.post(
@@ -368,6 +391,8 @@ const visibleColumns = computed(() =>
 const showFilters = ref(false);
 const filterSearch = ref('');
 const filterAssignee = ref('');
+const filterDateFrom = ref('');
+const filterDateTo = ref('');
 
 const availableAssignees = computed(() => {
   const map = {};
@@ -381,12 +406,18 @@ const availableAssignees = computed(() => {
 });
 
 const hasActiveFilters = computed(
-  () => filterSearch.value.trim() !== '' || filterAssignee.value !== ''
+  () =>
+    filterSearch.value.trim() !== '' ||
+    filterAssignee.value !== '' ||
+    filterDateFrom.value !== '' ||
+    filterDateTo.value !== ''
 );
 
 const clearFilters = () => {
   filterSearch.value = '';
   filterAssignee.value = '';
+  filterDateFrom.value = '';
+  filterDateTo.value = '';
 };
 
 // labelsMap evita O(n) find no template a cada render
@@ -417,6 +448,14 @@ const filteredConvsMap = computed(() => {
     if (filterAssignee.value) {
       filtered = filtered.filter(c => String(c.meta?.assignee?.id) === String(filterAssignee.value));
     }
+    if (filterDateFrom.value) {
+      const fromTs = new Date(`${filterDateFrom.value}T00:00:00`).getTime() / 1000;
+      filtered = filtered.filter(c => (labelEnteredAt.value[c.id] ?? 0) >= fromTs);
+    }
+    if (filterDateTo.value) {
+      const toTs = new Date(`${filterDateTo.value}T23:59:59`).getTime() / 1000;
+      filtered = filtered.filter(c => (labelEnteredAt.value[c.id] ?? 0) <= toTs);
+    }
     result[col.title] = { convs: filtered, total: deduped.length };
   }
   return result;
@@ -426,6 +465,8 @@ const activeFilterCount = computed(() => {
   let n = 0;
   if (filterSearch.value.trim()) n++;
   if (filterAssignee.value) n++;
+  if (filterDateFrom.value) n++;
+  if (filterDateTo.value) n++;
   return n;
 });
 
@@ -658,6 +699,24 @@ const currentHistory = computed(() => historyData.value[historyConvId.value] || 
           <option v-for="a in availableAssignees" :key="a.id" :value="a.id">{{ a.name }}</option>
         </select>
         <span class="absolute right-2.5 top-1/2 -translate-y-1/2 i-lucide-chevron-down size-3.5 text-n-slate-9 pointer-events-none" />
+      </div>
+
+      <!-- Date filter (data em que a etiqueta atual foi atribuída) -->
+      <div class="flex items-center gap-1.5">
+        <span class="i-lucide-calendar size-3.5 text-n-slate-9 flex-shrink-0" />
+        <input
+          v-model="filterDateFrom"
+          type="date"
+          title="Etiqueta atribuída a partir de"
+          class="text-sm px-2 py-1.5 rounded-lg border border-n-weak bg-n-solid-2 text-n-slate-12 focus:outline-none focus:ring-1 focus:ring-[var(--color-woot-500)] focus:border-[var(--color-woot-500)]"
+        />
+        <span class="text-xs text-n-slate-9">até</span>
+        <input
+          v-model="filterDateTo"
+          type="date"
+          title="Etiqueta atribuída até"
+          class="text-sm px-2 py-1.5 rounded-lg border border-n-weak bg-n-solid-2 text-n-slate-12 focus:outline-none focus:ring-1 focus:ring-[var(--color-woot-500)] focus:border-[var(--color-woot-500)]"
+        />
       </div>
 
       <!-- Clear filters -->
