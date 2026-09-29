@@ -19,11 +19,11 @@ RUN apk add --no-cache \
     vips-dev \
     vips-tools
 
-# Clonar repositório Chatwoot — fixado na versão 4.17.0-fazer-ai.115
+# Clonar repositório Chatwoot — fixado na versão 4.18.0-fazer-ai.119
 # Para atualizar: troque a tag abaixo, verifique os diffs dos arquivos customizados e rebuilde
 RUN echo "=== BUILD TIMESTAMP: $CACHEBUST ===" && \
-    echo "Cloning Chatwoot v4.17.0-fazer-ai.115" && \
-    git clone --depth 1 --branch v4.17.0-fazer-ai.115 https://github.com/fazer-ai/chatwoot.git . || \
+    echo "Cloning Chatwoot v4.18.0-fazer-ai.119" && \
+    git clone --depth 1 --branch v4.18.0-fazer-ai.119 https://github.com/fazer-ai/chatwoot.git . || \
     git clone --depth 1 https://github.com/fazer-ai/chatwoot.git . && \
     echo "Clone completed at $(date)"
 
@@ -79,7 +79,7 @@ RUN echo "CACHEBUST=$CACHEBUST - Building frontend assets" && \
     test -n "$(find public/vite -type f -print -quit)"
 # Stage 2: Imagem Final com Assets
 # ========================================
-FROM ghcr.io/fazer-ai/chatwoot:v4.17.0-fazer-ai.115
+FROM ghcr.io/fazer-ai/chatwoot:v4.18.0-fazer-ai.119
 
 # Metadata
 LABEL maintainer="seu-email@exemplo.com"
