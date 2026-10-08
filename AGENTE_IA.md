@@ -10,7 +10,7 @@ Este projeto constrói uma imagem Docker customizada sobre o fork `fazer-ai/chat
 
 **Pipeline:**
 ```
-GitHub push → GitHub Actions → Dockerfile.full (build) → ghcr.io/fabricio-back/chatwoot-moveisback:latest → Coolify (deploy)
+GitHub push → GitHub Actions → Dockerfile.full (build) → ghcr.io/fabricio-back/chatwoot-gc:latest → Coolify (deploy)
 ```
 
 **Build em dois estágios (`Dockerfile.full`):**
@@ -218,14 +218,14 @@ Variáveis de ambiente obrigatórias no Coolify:
 6. Coolify puxa a nova imagem e reinicia os containers
 ```
 
-**Verificar build:** `https://github.com/fabricio-back/chatwoot-moveisback/actions`
+**Verificar build:** `https://github.com/fabricio-back/chatwoot-gc/actions`
 
 ---
 
 ## 8. Referências Rápidas
 
-- Repo de customizações: `https://github.com/fabricio-back/chatwoot-moveisback`
+- Repo de customizações: `https://github.com/fabricio-back/chatwoot-gc`
 - Repo upstream: `https://github.com/fazer-ai/chatwoot`
 - Tags disponíveis: `https://github.com/fazer-ai/chatwoot/tags`
 - Imagens GHCR do upstream: `https://github.com/fazer-ai/chatwoot/pkgs/container/chatwoot`
-- Registry da imagem customizada: `ghcr.io/fabricio-back/chatwoot-moveisback:latest`
+- Registry da imagem customizada: `ghcr.io/fabricio-back/chatwoot-gc:latest`

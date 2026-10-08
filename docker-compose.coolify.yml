@@ -1,7 +1,7 @@
 version: '3'
 services:
   rails:
-    image: 'ghcr.io/fabricio-back/chatwoot-moveisback:latest'
+    image: 'ghcr.io/fabricio-back/chatwoot-gc:latest'
     pull_policy: always
     volumes:
       - 'storage:/app/storage'
@@ -56,7 +56,7 @@ services:
       timeout: 20s
       retries: 10
   sidekiq:
-    image: 'ghcr.io/fabricio-back/chatwoot-moveisback:latest'
+    image: 'ghcr.io/fabricio-back/chatwoot-gc:latest'
     pull_policy: always
     volumes:
       - 'storage:/app/storage'
