@@ -47,7 +47,7 @@ services:
         command:
           - sh
           - '-c'
-          - 'bundle exec rails db:chatwoot_prepare && bundle exec rails runner "begin; DashboardApp.where(\"title LIKE ? OR title LIKE ? OR title LIKE ? OR title LIKE ? OR title LIKE ? OR content LIKE ?\", \"%Conex%\", \"%Projetos%\", \"%Chatbot%\", \"%Config Extra%\", \"%Chats Internos%\", \"%kanban%\").destroy_all; puts \"[CleanApps] DashboardApps removidos\"; rescue => e; puts \"[CleanApps] #{e.message}\"; end" && bundle exec rails branding:update && if [ -n "$${BRAND_ASSETS_URL}" ]; then deployment/extract_brand_assets.sh "$${BRAND_ASSETS_URL}"; fi'
+          - 'bundle exec rails db:chatwoot_prepare && bundle exec rails runner "begin; DashboardApp.where(\"title LIKE ? OR title LIKE ? OR title LIKE ? OR title LIKE ? OR title LIKE ? OR content LIKE ?\", \"%Conex%\", \"%Projetos%\", \"%Chatbot%\", \"%Config Extra%\", \"%Chats Internos%\", \"%kanban%\").destroy_all; puts \"[CleanApps] DashboardApps removidos\"; rescue => e; puts \"[CleanApps] #{e.message}\"; end" && bundle exec rails branding:update && bundle exec rails runner "begin; InstallationConfig.find_or_initialize_by(name: \"INSTALLATION_NAME\").update!(value: \"GC Jardins de Janeiro\"); puts \"[Brand] INSTALLATION_NAME definido\"; rescue => e; puts \"[Brand] #{e.message}\"; end" && if [ -n "$${BRAND_ASSETS_URL}" ]; then deployment/extract_brand_assets.sh "$${BRAND_ASSETS_URL}"; fi'
     healthcheck:
       test:
         - CMD-SHELL
