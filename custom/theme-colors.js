@@ -225,7 +225,7 @@ export const colors = {
     },
 
     black: '#000000',
-    brand: '#aa0101',
+    brand: '#1a2f23',
     background: 'rgb(var(--background-color) / <alpha-value>)',
     'input-background': 'rgba(var(--background-input-box))',
     surface: {
