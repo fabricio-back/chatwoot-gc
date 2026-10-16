@@ -19,8 +19,8 @@ The build clones upstream then runs `pnpm build:sdk` + `vite build` (pnpm pinned
 ## Version pinning (updating Chatwoot)
 
 The upstream version is pinned in **two places** in `Dockerfile.full` and must change together:
-1. `git clone --branch v4.18.0-fazer-ai.126 ...` (Stage 1)
-2. `FROM ghcr.io/fazer-ai/chatwoot:v4.18.0-fazer-ai.126` (Stage 2)
+1. `git clone --branch v4.18.0-fazer-ai.131 ...` (Stage 1)
+2. `FROM ghcr.io/fazer-ai/chatwoot:v4.18.0-fazer-ai.131` (Stage 2)
 
 The Stage 2 tag must exist as a **published GHCR image** (`ghcr.io/fazer-ai/chatwoot`), not just a Git tag — otherwise the build fails at Stage 2. Use `:latest` for Stage 2 if the image is missing. After bumping, diff every upstream file that `custom/` overrides and merge new upstream methods/getters while preserving local logic. `AGENTE_IA.md` §3 lists the files and common failure modes (e.g. `/build/public/vite not found` → a broken import in a custom Vue file; `NoMethodError` after deploy → upstream added a method our Ruby override lacks).
 
